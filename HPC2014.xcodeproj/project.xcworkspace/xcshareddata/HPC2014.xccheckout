@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>CF4ACF91-2282-4F49-A383-F7D08296C62A</string>
+	<key>IDESourceControlProjectName</key>
+	<string>HPC2014</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>CE3F841077FC60EE63ACDBA58C9F2F38476F1D9D</key>
+		<string>github.com:cocodrips/HALCON.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>HPC2014.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>CE3F841077FC60EE63ACDBA58C9F2F38476F1D9D</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>github.com:cocodrips/HALCON.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>CE3F841077FC60EE63ACDBA58C9F2F38476F1D9D</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>CE3F841077FC60EE63ACDBA58C9F2F38476F1D9D</string>
+			<key>IDESourceControlWCCName</key>
+			<string>hpc2014</string>
+		</dict>
+	</array>
+</dict>
+</plist>
