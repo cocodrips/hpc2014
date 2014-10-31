@@ -38,25 +38,8 @@ namespace hpc {
 
         const Chara& player = aStageAccessor.player();
         const LotusCollection& lotuses = aStageAccessor.lotuses();
-        const EnemyAccessor& enemies = aStageAccessor.enemies();
-        
-        bool isGuard = false;
-        Vec2 nextVec = player.pos() + lotuses[player.targetLotusNo()].pos();
 
-        
-        for (int i = 0; i < enemies.count(); ++i)
-        {
-            Chara enemy = enemies.operator[](i);
-            Circle enemyCircle = Circle(enemy.pos() + enemy.vel(), enemy.region().radius());
-            if (Collision::IsHit(enemyCircle, player.region(), nextVec)) {
-                isGuard = true;
-                break;
-            }
-            
-        }
-
-
-        if (player.accelCount() > 0 && !isGuard){
+        if (player.accelCount() > 0){
             return Action::Accel(lotuses[player.targetLotusNo()].pos());
         }
         return Action::Wait();
