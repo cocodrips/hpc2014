@@ -15,17 +15,20 @@
 
 namespace {
     int sTimer = 0;
+    int firstLotus = 0;
+    int prevLotus = 0;
     using namespace hpc;
 }
 
 namespace hpc {
-
     /// 各ステージ開始時に呼び出されます。
     /// この関数を実装することで、各ステージに対して初期処理を行うことができます。
     /// @param[in] aStageAccessor 現在のステージ。
     void Answer::Init(const StageAccessor& aStageAccessor)
     {
+        prevLotus = firstLotus;
         sTimer = 0;
+        
         
     }
 
@@ -35,17 +38,34 @@ namespace hpc {
     Action Answer::GetNextAction(const StageAccessor& aStageAccessor)
     {
         ++sTimer; // turn_counter
-
-        const Chara& player = aStageAccessor.player();
         const LotusCollection& lotuses = aStageAccessor.lotuses();
-
-        if (player.accelCount() > 0){
-            return Action::Accel(lotuses[player.targetLotusNo()].pos());
+        const Chara& player = aStageAccessor.player();
+        
+        Vec2 flow = aStageAccessor.field().flowVel();
+        
+        
+        Lotus targetLotus = lotuses[player.targetLotusNo()];
+        Vec2 nextVel = player.vel();
+        nextVel.getNormalized(Parameter::CharaAccelSpeed());
+        
+        bool isAccel = !Collision::IsHit(targetLotus.region(), player.region(), player.pos() + nextVel + nextVel + nextVel + nextVel + nextVel)
+        && player.vel().length() / Parameter::CharaAccelSpeed() < 0.5;
+        
+        Vec2 targetPos = targetLotus.pos() - flow;
+        
+        if (player.accelCount() > 0 && isAccel) {
+            return Action::Accel(targetPos);
         }
         return Action::Wait();
     }
     
+    
+    
 }
+
+
+
+
 
 //------------------------------------------------------------------------------
 // EOF

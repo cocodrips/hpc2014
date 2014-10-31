@@ -272,6 +272,7 @@ namespace hpc {
     /// @return 現在の目指す蓮番号
     int Chara::targetLotusNo()const
     {
+//        HPC_PRINT("%d",mTargetLotusNo);
         return mTargetLotusNo;
     }
 
