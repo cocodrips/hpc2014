@@ -153,6 +153,8 @@ namespace hpc {
         const Vec2 targetLotusPos = targetLotus.pos();
         Vec2 toTargetVec = targetLotusPos - player.pos();
         
+//        if (true) return Action::Wait();
+
         if (toTargetVec.isZero()) {
             return Action::Wait();
         }
