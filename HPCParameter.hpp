@@ -20,7 +20,7 @@ namespace hpc {
         ///@name ゲームルール
         //@{
         static const int GameTurnPerStage = 3000;       ///< 1ステージ辺りのゲーム時間
-        static const int GameStageCount = 100;          ///< ステージ数
+        static const int GameStageCount = 100;          ///< ステージ数 100
         static const int GameTimeLimitSec = 20;         ///< 制限時間(秒)
         //@}
 

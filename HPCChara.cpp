@@ -233,6 +233,9 @@ namespace hpc {
     /// @return キャラの現在位置
     Vec2 Chara::pos()const
     {
+//        Vec2 pos = mRegion.pos();
+//        HPC_PRINT("Pos: (%f, %f)\n", pos.x, pos.y);
+
         return mRegion.pos();
     }
 
@@ -240,6 +243,7 @@ namespace hpc {
     /// @return キャラの現在速度
     Vec2 Chara::vel()const
     {
+//        HPC_PRINT("Vel: (%f, %f)\n", mVel.x, mVel.y);
         return mVel;
     }
 

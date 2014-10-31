@@ -14,45 +14,54 @@
 #include "HPCAnswerInclude.hpp"
 
 namespace {
-    using namespace hpc;
-    
-    /// タイマー
     int sTimer = 0;
+    using namespace hpc;
 }
 
-/// プロコン問題環境を表します。
 namespace hpc {
 
-    //------------------------------------------------------------------------------
     /// 各ステージ開始時に呼び出されます。
-    ///
     /// この関数を実装することで、各ステージに対して初期処理を行うことができます。
-    ///
     /// @param[in] aStageAccessor 現在のステージ。
     void Answer::Init(const StageAccessor& aStageAccessor)
     {
         sTimer = 0;
+        
     }
 
-    //------------------------------------------------------------------------------
     /// 各ターンでの動作を返します。
-    ///
     /// @param[in] aStageAccessor 現在ステージの情報。
-    ///
     /// @return これから行う動作を表す Action クラス。
     Action Answer::GetNextAction(const StageAccessor& aStageAccessor)
     {
+        ++sTimer; // turn_counter
+
         const Chara& player = aStageAccessor.player();
         const LotusCollection& lotuses = aStageAccessor.lotuses();
+        const EnemyAccessor& enemies = aStageAccessor.enemies();
         
-        ++sTimer;
+        bool isGuard = false;
+        Vec2 nextVec = player.pos() + lotuses[player.targetLotusNo()].pos();
+
         
-        if (20 <= sTimer) {
-            sTimer = 0;
+        for (int i = 0; i < enemies.count(); ++i)
+        {
+            Chara enemy = enemies.operator[](i);
+            Circle enemyCircle = Circle(enemy.pos() + enemy.vel(), enemy.region().radius());
+            if (Collision::IsHit(enemyCircle, player.region(), nextVec)) {
+                isGuard = true;
+                break;
+            }
+            
+        }
+
+
+        if (player.accelCount() > 0 && !isGuard){
             return Action::Accel(lotuses[player.targetLotusNo()].pos());
         }
         return Action::Wait();
     }
+    
 }
 
 //------------------------------------------------------------------------------
