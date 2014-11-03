@@ -21,6 +21,7 @@ namespace {
 namespace hpc {
     int prevLotus;
     float baseAccessTiming;
+    int lotusNum;
     Vec2 decel(Vec2 vel) {
         if (vel.length() <= Parameter::CharaDecelSpeed()) {
             vel = Vec2(0, 0);
@@ -58,6 +59,16 @@ namespace hpc {
         return ((c3 - c1) + (c2 - c1)).length();
     }
     
+   
+    ///今のままのベクトルでも、次の蓮に近づくかどうか
+    bool gettingCloser(Chara player, Circle lotus, Vec2 flow) {
+        Vec2 nextPos = getNextPosition(player.pos(), player.vel(), flow, false, Vec2(0, 0));
+
+        Vec2 currentVec = lotus.pos() - player.pos();
+        Vec2 nextVec = lotus.pos() - nextPos;
+        return (currentVec.length() - nextVec.length()) / player.vel().length() > 0.7;
+    }
+    
     Vec2 getTargetPos(Chara player, Circle c1, Circle c2, Vec2 flow) {
         if (Collision::IsHit(c1, player.region(), c2.pos())) {
             Vec2 vel = (c2.pos() - player.pos()).getNormalized(Parameter::CharaAccelSpeed()) - flow;
@@ -68,6 +79,7 @@ namespace hpc {
         return player.pos() + vel * Parameter::CharaAddAccelWaitTurn;
     }
     
+    
 
     /// 各ステージ開始時に呼び出されます。
     /// この関数を実装することで、各ステージに対して初期処理を行うことができます。
@@ -77,7 +89,6 @@ namespace hpc {
         sTimer = 0;
         baseAccessTiming = Parameter::CharaAccelSpeed();
         for (int i=0; i < Parameter::CharaAddAccelWaitTurn; i++) { baseAccessTiming -=  Parameter::CharaDecelSpeed();}
-        
     }
 
     /// 各ターンでの動作を返します。
@@ -95,7 +106,7 @@ namespace hpc {
         
         bool isAccel = false;
         if (Collision::IsHit(lotuses[prevLotus].region(), player.region())){
-            isAccel = true;
+            isAccel = !gettingCloser(player, targetLotus.region(), flow);
         } else {
             isAccel = !Collision::IsHit(targetLotus.region(), player.region(), lastPos(player.pos(), player.vel(), flow))
             and player.vel().length() < baseAccessTiming;
@@ -105,6 +116,8 @@ namespace hpc {
                 }
             }
         }
+        
+        aStageAccessor.field();
         
 
         Vec2 targetPos = getTargetPos(player, targetLotus.region(), nextTargetLotus.region(), flow);
