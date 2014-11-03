@@ -59,32 +59,15 @@ namespace hpc {
     }
     
     Vec2 getTargetPos(Chara player, Circle c1, Circle c2, Vec2 flow) {
-        // この関数は波を考慮していない
-
         if (Collision::IsHit(c1, player.region(), c2.pos())) {
             Vec2 vel = (c2.pos() - player.pos()).getNormalized(Parameter::CharaAccelSpeed()) - flow;
             return player.pos() + vel * Parameter::CharaAddAccelWaitTurn;
         }
         
-        Vec2 playerToC2Vec = c2.pos() - player.pos();
-        Vec2 normalVec = Vec2(playerToC2Vec.y, -playerToC2Vec.x);
-        
-
-        Vec2 n1 = normalVec;
-        Vec2 n2 = -normalVec;
-
-        n1.normalize(player.region().radius() + c1.radius() * 0.5);
-        n2.normalize(player.region().radius() + c1.radius() * 0.5);
-        
-        if (distTo2Vec(c1.pos() + n1, player.pos(), c2.pos())
-            < distTo2Vec(c1.pos() + n2, player.pos(), c2.pos())) {
-            return c1.pos() + n1;
-        }
-        
-        return c1.pos() + n2;
+        Vec2 vel = (c1.pos() - player.pos()).getNormalized(Parameter::CharaAccelSpeed()) - flow;
+        return player.pos() + vel * Parameter::CharaAddAccelWaitTurn;
     }
     
-
 
     /// 各ステージ開始時に呼び出されます。
     /// この関数を実装することで、各ステージに対して初期処理を行うことができます。
@@ -123,23 +106,15 @@ namespace hpc {
             }
         }
         
-        
 
-//        Vec2 targetPos = targetLotus.pos() - flow;
         Vec2 targetPos = getTargetPos(player, targetLotus.region(), nextTargetLotus.region(), flow);
-//        targetPos -= Parameter::CharaAddAccelWaitTurn * flow;
         
         prevLotus = player.targetLotusNo();
         if (player.accelCount() > 0 && isAccel) {
             return Action::Accel(targetPos);
         }
-//        getNextPosition(aStageAccessor);
         return Action::Wait();
-        
     }
-    
-    
-    
     
     
 }
