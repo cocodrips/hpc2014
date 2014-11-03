@@ -51,7 +51,7 @@ namespace hpc {
         static const int LotusCountMax = 20;            ///< 最大数
         static float LotusBaseRadius();                 ///< 基準となる半径
         //@}
-
+        
     private:
         Parameter();
     };

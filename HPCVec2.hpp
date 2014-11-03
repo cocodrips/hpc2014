@@ -62,9 +62,10 @@ namespace hpc {
         Vec2 getRotated(float aRad)const;                       ///< 一定角度回転させたベクトルを返します。
         void project(const Vec2& aVec);                         ///< ベクトルを射影します。
         Vec2 getProjected(const Vec2& aVec)const;               ///< 射影したベクトルを返します。
-
+        
         float x;    ///< 値の x 要素
         float y;    ///< 値の y 要素
+
     };
 }
 //------------------------------------------------------------------------------
