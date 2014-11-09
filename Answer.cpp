@@ -89,7 +89,11 @@ namespace hpc {
     Vec2 getCenterLotusPos(const Chara player, const Vec2 p1, const Circle c2, const Vec2 p3) {
         Vec2 v1 = p1 - c2.pos();
         Vec2 v2 = p3 - c2.pos();
-        float v1v2Angle = (Math::ATan2(v2.y, v2.x) - Math::ATan2(v1.y, v1.x)) / 2;
+        float v1v2Angle = (Math::ATan2(v2.y, v2.x) - Math::ATan2(v1.y, v1.x));
+        if (v1v2Angle > Math::PI) v1v2Angle -= (Math::PI * 2);
+        if (v1v2Angle < -Math::PI) v1v2Angle += (Math::PI * 2);
+        v1v2Angle /= 2;
+        
         
         if (!Math::IsValid(v1v2Angle)) {
             v1v2Angle = 0;
@@ -98,8 +102,10 @@ namespace hpc {
         float horizontalV2Angle = Math::ATan2(0, 1) - Math::ATan2(v2.y, v2.x);
         float angle = horizontalV2Angle + v1v2Angle;
         
+
         
-        return c2.pos() + (c2.radius() + player.region().radius() * 0.8) * Vec2(Math::Cos(angle), -Math::Sin(angle));
+        return c2.pos() + (c2.radius() + player.region().radius() * 0.5) * Vec2(Math::Cos(angle), -Math::Sin(angle));
+        
     }
     
     
@@ -120,12 +126,12 @@ namespace hpc {
                                                   lotuses[(i + 1) % lotusLen].pos());
         }
         
-        for (int k = 0; k < 3; k++) {
+        for (int k = 0; k < 10; k++) {
             for (int i = 0; i < lotusLen; i++) {
                 lotusTargetPos[i] = getCenterLotusPos(player,
                                                       lotusTargetPos[(i - 1 + lotusLen) % lotusLen],
                                                       lotuses[(i) % lotusLen].region(),
-                                                      lotusTargetPos[(i + 1 + lotusLen) % lotusLen]);
+                                                      lotusTargetPos[(i + 1) % lotusLen]);
             }
         }
 
