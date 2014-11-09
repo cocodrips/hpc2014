@@ -12,6 +12,7 @@
 // Answer.cpp 専用のインクルードファイルです。
 // 別のファイルをインクルードした場合、評価時には削除されます。
 #include "HPCAnswerInclude.hpp"
+#include<iostream>
 
 namespace {
     int sTimer = 0;
@@ -21,7 +22,11 @@ namespace {
 namespace hpc {
     int prevLotus;
     float baseAccessTiming;
-    int lotusNum;
+    int lotusLen;
+    
+    const Vec2 nullVec2 = Vec2(-1, -1);
+    Vec2 lotusTargetPos[1000];
+    
     Vec2 decel(Vec2 vel) {
         if (vel.length() <= Parameter::CharaDecelSpeed()) {
             vel = Vec2(0, 0);
@@ -69,16 +74,53 @@ namespace hpc {
         return (currentVec.length() - nextVec.length()) / player.vel().length() > 0.7;
     }
     
-    Vec2 getTargetPos(Chara player, Circle c1, Circle c2, Vec2 flow) {
-        if (Collision::IsHit(c1, player.region(), c2.pos())) {
-            Vec2 vel = (c2.pos() - player.pos()).getNormalized(Parameter::CharaAccelSpeed()) - flow;
+    Vec2 getTargetPos(Chara player, Circle c1, int i, Vec2 flow) {
+        Vec2 v1 = lotusTargetPos[i % lotusLen];
+        Vec2 v2 = lotusTargetPos[(i + 1) % lotusLen];
+
+        if (Collision::IsHit(c1, player.region(), v2)) {
+            Vec2 vel = (v2 - player.pos()).getNormalized(Parameter::CharaAccelSpeed()) - flow;
             return player.pos() + vel * Parameter::CharaAddAccelWaitTurn;
         }
         
-        Vec2 vel = (c1.pos() - player.pos()).getNormalized(Parameter::CharaAccelSpeed()) - flow;
+        Vec2 vel = (v1 - player.pos()).getNormalized(Parameter::CharaAccelSpeed()) - flow;
         return player.pos() + vel * Parameter::CharaAddAccelWaitTurn;
     }
     
+    Vec2 getCenterLotusPos(const Circle c1, const Circle c2, const Circle c3) {
+        Vec2 v1 = c1.pos() - c2.pos();
+        Vec2 v2 = c3.pos() - c2.pos();
+        float v1v2Angle = v2.angle(v1) / 2;
+        
+        if (!Math::IsValid(v1v2Angle)) {
+            v1v2Angle = 0;
+        }
+        
+        float horizontalV2Angle = Vec2(1, 0).angle(v2);
+        float angle = v1v2Angle + horizontalV2Angle;
+        
+        return c2.pos() + c2.radius() * Vec2(Math::Cos(angle), Math::Sin(angle));
+    }
+    
+    
+    void setLotusTargetPos(const StageAccessor& aStageAccessor){
+
+        const Chara& player = aStageAccessor.player();
+        const LotusCollection& lotuses = aStageAccessor.lotuses();
+
+        int targetLotusNum = 0;
+        
+        lotusTargetPos[0] = getCenterLotusPos(player.region(),
+                                              lotuses[targetLotusNum].region(),
+                                              lotuses[(targetLotusNum + 1) % lotusLen].region());
+        
+        for (int i = 1; i < lotusLen; i++) {
+            lotusTargetPos[i] = getCenterLotusPos(lotuses[(i - 1 + lotusLen) % lotusLen].region(),
+                                                  lotuses[(i) % lotusLen].region(),
+                                                  lotuses[(i + 1) % lotusLen].region());
+//            std::cout << "(" << lotusTargetPos[i].x << "," << lotusTargetPos[i].y << ")" << std::endl;
+        }
+    }
     
 
     /// 各ステージ開始時に呼び出されます。
@@ -87,8 +129,16 @@ namespace hpc {
     void Answer::Init(const StageAccessor& aStageAccessor) {
         prevLotus = aStageAccessor.player().targetLotusNo();
         sTimer = 0;
+        lotusLen = aStageAccessor.lotuses().count();
+        
         baseAccessTiming = Parameter::CharaAccelSpeed();
         for (int i=0; i < Parameter::CharaAddAccelWaitTurn; i++) { baseAccessTiming -=  Parameter::CharaDecelSpeed();}
+        
+        setLotusTargetPos(aStageAccessor);
+        
+        
+    
+        
     }
 
     /// 各ターンでの動作を返します。
@@ -101,7 +151,7 @@ namespace hpc {
         
         Vec2 flow = aStageAccessor.field().flowVel();
         Lotus targetLotus = lotuses[player.targetLotusNo()];
-        Lotus nextTargetLotus = lotuses[(player.targetLotusNo() + 1) % lotuses.count()];
+//        Lotus nextTargetLotus = lotuses[(player.targetLotusNo() + 1) % lotuses.count()];
         
         
         bool isAccel = false;
@@ -120,7 +170,7 @@ namespace hpc {
         aStageAccessor.field();
         
 
-        Vec2 targetPos = getTargetPos(player, targetLotus.region(), nextTargetLotus.region(), flow);
+        Vec2 targetPos = getTargetPos(player, targetLotus.region(), player.targetLotusNo(), flow);
         
         prevLotus = player.targetLotusNo();
         if (player.accelCount() > 0 && isAccel) {
