@@ -112,12 +112,23 @@ namespace hpc {
                                               lotuses[0].region(),
                                               lotuses[(1 + lotusLen) % lotusLen].pos());
         
+        // 仮位置の決定
         for (int i = 1; i < lotusLen; i++) {
             lotusTargetPos[i] = getCenterLotusPos(player,
                                                   lotusTargetPos[(i - 1 + lotusLen) % lotusLen],
                                                   lotuses[(i) % lotusLen].region(),
                                                   lotuses[(i + 1) % lotusLen].pos());
         }
+        
+        for (int k = 0; k < 3; k++) {
+            for (int i = 0; i < lotusLen; i++) {
+                lotusTargetPos[i] = getCenterLotusPos(player,
+                                                      lotusTargetPos[(i - 1 + lotusLen) % lotusLen],
+                                                      lotuses[(i) % lotusLen].region(),
+                                                      lotusTargetPos[(i + 1 + lotusLen) % lotusLen]);
+            }
+        }
+
     }
     
 
