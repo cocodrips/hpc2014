@@ -12,7 +12,6 @@
 // Answer.cpp 専用のインクルードファイルです。
 // 別のファイルをインクルードした場合、評価時には削除されます。
 #include "HPCAnswerInclude.hpp"
-#include<iostream>
 
 namespace {
     int sTimer = 0;
@@ -78,7 +77,7 @@ namespace hpc {
         Vec2 v1 = lotusTargetPos[i % lotusLen];
         Vec2 v2 = lotusTargetPos[(i + 1) % lotusLen];
 
-        if (Collision::IsHit(c1, player.region(), v2)) {
+        if (Collision::IsHit(c1, player.region(), v2)) { // 2つめのに行くと1つ目に当たるなら2つ目のに向かう
             Vec2 vel = (v2 - player.pos()).getNormalized(Parameter::CharaAccelSpeed()) - flow;
             return player.pos() + vel * Parameter::CharaAddAccelWaitTurn;
         }
@@ -87,38 +86,32 @@ namespace hpc {
         return player.pos() + vel * Parameter::CharaAddAccelWaitTurn;
     }
     
-    Vec2 getCenterLotusPos(const Circle c1, const Circle c2, const Circle c3) {
+    Vec2 getCenterLotusPos(const Chara player, const Circle c1, const Circle c2, const Circle c3) {
         Vec2 v1 = c1.pos() - c2.pos();
         Vec2 v2 = c3.pos() - c2.pos();
-        float v1v2Angle = v2.angle(v1) / 2;
+        float v1v2Angle = (Math::ATan2(v2.y, v2.x) - Math::ATan2(v1.y, v1.x)) / 2;
         
         if (!Math::IsValid(v1v2Angle)) {
             v1v2Angle = 0;
         }
         
-        float horizontalV2Angle = Vec2(1, 0).angle(v2);
-        float angle = v1v2Angle + horizontalV2Angle;
+        float horizontalV2Angle = Math::ATan2(0, 1) - Math::ATan2(v2.y, v2.x);
+        float angle = horizontalV2Angle + v1v2Angle;
         
-        return c2.pos() + c2.radius() * Vec2(Math::Cos(angle), Math::Sin(angle));
+        
+        return c2.pos() + (c2.radius() + player.region().radius() * 0.8) * Vec2(Math::Cos(angle), -Math::Sin(angle));
     }
     
     
     void setLotusTargetPos(const StageAccessor& aStageAccessor){
-
-        const Chara& player = aStageAccessor.player();
         const LotusCollection& lotuses = aStageAccessor.lotuses();
-
-        int targetLotusNum = 0;
+        Chara player = aStageAccessor.player();
         
-        lotusTargetPos[0] = getCenterLotusPos(player.region(),
-                                              lotuses[targetLotusNum].region(),
-                                              lotuses[(targetLotusNum + 1) % lotusLen].region());
-        
-        for (int i = 1; i < lotusLen; i++) {
-            lotusTargetPos[i] = getCenterLotusPos(lotuses[(i - 1 + lotusLen) % lotusLen].region(),
+        for (int i = 0; i < lotusLen; i++) {
+            lotusTargetPos[i] = getCenterLotusPos(player,
+                                                  lotuses[(i - 1 + lotusLen) % lotusLen].region(),
                                                   lotuses[(i) % lotusLen].region(),
                                                   lotuses[(i + 1) % lotusLen].region());
-//            std::cout << "(" << lotusTargetPos[i].x << "," << lotusTargetPos[i].y << ")" << std::endl;
         }
     }
     
@@ -166,9 +159,6 @@ namespace hpc {
                 }
             }
         }
-        
-        aStageAccessor.field();
-        
 
         Vec2 targetPos = getTargetPos(player, targetLotus.region(), player.targetLotusNo(), flow);
         
