@@ -86,9 +86,9 @@ namespace hpc {
         return player.pos() + vel * Parameter::CharaAddAccelWaitTurn;
     }
     
-    Vec2 getCenterLotusPos(const Chara player, const Circle c1, const Circle c2, const Circle c3) {
-        Vec2 v1 = c1.pos() - c2.pos();
-        Vec2 v2 = c3.pos() - c2.pos();
+    Vec2 getCenterLotusPos(const Chara player, const Vec2 p1, const Circle c2, const Vec2 p3) {
+        Vec2 v1 = p1 - c2.pos();
+        Vec2 v2 = p3 - c2.pos();
         float v1v2Angle = (Math::ATan2(v2.y, v2.x) - Math::ATan2(v1.y, v1.x)) / 2;
         
         if (!Math::IsValid(v1v2Angle)) {
@@ -107,11 +107,16 @@ namespace hpc {
         const LotusCollection& lotuses = aStageAccessor.lotuses();
         Chara player = aStageAccessor.player();
         
-        for (int i = 0; i < lotusLen; i++) {
+        lotusTargetPos[0] = getCenterLotusPos(player,
+                                              lotuses[(- 1 + lotusLen) % lotusLen].pos(),
+                                              lotuses[0].region(),
+                                              lotuses[(1 + lotusLen) % lotusLen].pos());
+        
+        for (int i = 1; i < lotusLen; i++) {
             lotusTargetPos[i] = getCenterLotusPos(player,
-                                                  lotuses[(i - 1 + lotusLen) % lotusLen].region(),
+                                                  lotusTargetPos[(i - 1 + lotusLen) % lotusLen],
                                                   lotuses[(i) % lotusLen].region(),
-                                                  lotuses[(i + 1) % lotusLen].region());
+                                                  lotuses[(i + 1) % lotusLen].pos());
         }
     }
     
@@ -138,13 +143,11 @@ namespace hpc {
     /// @param[in] aStageAccessor 現在ステージの情報。
     /// @return これから行う動作を表す Action クラス。
     Action Answer::GetNextAction(const StageAccessor& aStageAccessor) {
-        ++sTimer; // turn_counter
         const LotusCollection& lotuses = aStageAccessor.lotuses();
         const Chara& player = aStageAccessor.player();
         
         Vec2 flow = aStageAccessor.field().flowVel();
         Lotus targetLotus = lotuses[player.targetLotusNo()];
-//        Lotus nextTargetLotus = lotuses[(player.targetLotusNo() + 1) % lotuses.count()];
         
         
         bool isAccel = false;
