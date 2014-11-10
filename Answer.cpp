@@ -185,20 +185,22 @@ namespace hpc {
         Vec2 v2 = lotusTargetPos[(i + 1) % lotusLen];
 
         if (Collision::IsHit(c1, player.region(), v2)) { // 2つめのに行くと1つ目に当たるなら2つ目のに向かう
-            Vec2 vel = (v2 - player.pos()).getNormalized(Parameter::CharaAccelSpeed()) - (flow * accelFrame);
+            Vec2 vel = (v2 - player.pos()).getNormalized(Parameter::CharaAccelSpeed()) - flow;
             return player.pos() + vel * Parameter::CharaAddAccelWaitTurn;
         }
         
-        Vec2 target;
-        if (accelNum > 1) {
-            Vec2 d = (v1 - player.pos()) / Math::Max(accelNum, 1);
-            target = player.pos() + d - (flow * accelFrame);
-        } else {
-            target = v1 - (flow * accelFrame);
-        }
-        
-        
-        return target;
+//        Vec2 target;
+//        if (accelNum > 1) {
+//            Vec2 d = (v1 - player.pos()) / Math::Max(accelNum, 1);
+//            target = player.pos() + d - (flow * accelFrame);
+//        } else {
+//            target = v1 - (flow * accelFrame);
+//        }
+//        
+//        
+//        return target;
+        Vec2 vel = (v1 - player.pos()).getNormalized(Parameter::CharaAccelSpeed()) - flow;
+        return player.pos() + vel * Parameter::CharaAddAccelWaitTurn;
     }
     
     Vec2 getCenterLotusPos(const Chara player, const Vec2 p1, const Circle c2, const Vec2 p3) {
