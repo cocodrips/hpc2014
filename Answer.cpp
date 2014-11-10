@@ -14,16 +14,15 @@
 #include "HPCAnswerInclude.hpp"
 
 namespace {
-    int sTimer = 0;
     using namespace hpc;
 }
 
 namespace hpc {
     int prevLotus;
-    float baseAccessTiming;
+    float baseAccelTiming;
+    float accelTTL;
     int lotusLen;
-    
-    const Vec2 nullVec2 = Vec2(-1, -1);
+    Vec2 flow;
     Vec2 lotusTargetPos[1000];
     
     Vec2 decel(Vec2 vel) {
@@ -42,7 +41,7 @@ namespace hpc {
         return toPos;
     }
     
-    Vec2 lastPos(Vec2 pos, Vec2 vel, Vec2 flow) {
+    Vec2 lastPos(Vec2 pos, Vec2 vel) {
         while (vel.length() > 0) {
             vel = decel(vel);
             pos += vel + flow;
@@ -50,7 +49,7 @@ namespace hpc {
         return pos;
     }
     
-    Vec2 getNextPosition(Vec2 pos, Vec2 vel, Vec2 flow, bool useAccel, Vec2 targetPos) {
+    Vec2 getNextPosition(Vec2 pos, Vec2 vel, bool useAccel, Vec2 targetPos) {
         if (useAccel) {
             vel = nomarizeVel(pos, targetPos);
         } else {
@@ -64,16 +63,27 @@ namespace hpc {
     }
     
    
+    // 1アクセルで何ターン生き延びるか
+    void setAccelTTL() {
+        float s = Parameter::CharaAccelSpeed();
+        accelTTL = 0;
+        while (s >= baseAccelTiming) {
+            s -= Parameter::CharaDecelSpeed();
+            accelTTL += 1;
+        }
+    }
+    
+    
     ///今のままのベクトルでも、次の蓮に近づくかどうか
-    bool gettingCloser(Chara player, Circle lotus, Vec2 flow) {
-        Vec2 nextPos = getNextPosition(player.pos(), player.vel(), flow, false, Vec2(0, 0));
+    bool gettingCloser(Chara player, Circle lotus) {
+        Vec2 nextPos = getNextPosition(player.pos(), player.vel(), false, Vec2(0, 0));
 
         Vec2 currentVec = lotus.pos() - player.pos();
         Vec2 nextVec = lotus.pos() - nextPos;
         return (currentVec.length() - nextVec.length()) / player.vel().length() > 0.7;
     }
     
-    Vec2 getTargetPos(Chara player, Circle c1, int i, Vec2 flow) {
+    Vec2 getTargetPos(Chara player, Circle c1, int i) {
         Vec2 v1 = lotusTargetPos[i % lotusLen];
         Vec2 v2 = lotusTargetPos[(i + 1) % lotusLen];
 
@@ -101,8 +111,6 @@ namespace hpc {
         
         float horizontalV2Angle = Math::ATan2(0, 1) - Math::ATan2(v2.y, v2.x);
         float angle = horizontalV2Angle + v1v2Angle;
-        
-
         
         return c2.pos() + (c2.radius() + player.region().radius() * 0.5) * Vec2(Math::Cos(angle), -Math::Sin(angle));
         
@@ -137,17 +145,20 @@ namespace hpc {
 
     }
     
+    ///////////////////////////////////////////////////////////////////////////////////////
+    
 
     /// 各ステージ開始時に呼び出されます。
     /// この関数を実装することで、各ステージに対して初期処理を行うことができます。
     /// @param[in] aStageAccessor 現在のステージ。
     void Answer::Init(const StageAccessor& aStageAccessor) {
         prevLotus = aStageAccessor.player().targetLotusNo();
-        sTimer = 0;
         lotusLen = aStageAccessor.lotuses().count();
+        flow = aStageAccessor.field().flowVel();
         
-        baseAccessTiming = Parameter::CharaAccelSpeed();
-        for (int i=0; i < Parameter::CharaAddAccelWaitTurn; i++) { baseAccessTiming -=  Parameter::CharaDecelSpeed();}
+        baseAccelTiming = Parameter::CharaAccelSpeed();
+        for (int i=0; i < Parameter::CharaAddAccelWaitTurn; i++) { baseAccelTiming -=  Parameter::CharaDecelSpeed();}
+        setAccelTTL();
         
         setLotusTargetPos(aStageAccessor);
         
@@ -163,16 +174,15 @@ namespace hpc {
         const LotusCollection& lotuses = aStageAccessor.lotuses();
         const Chara& player = aStageAccessor.player();
         
-        Vec2 flow = aStageAccessor.field().flowVel();
         Lotus targetLotus = lotuses[player.targetLotusNo()];
         
         
         bool isAccel = false;
         if (Collision::IsHit(lotuses[prevLotus].region(), player.region())){
-            isAccel = !gettingCloser(player, targetLotus.region(), flow);
+            isAccel = !gettingCloser(player, targetLotus.region());
         } else {
-            isAccel = !Collision::IsHit(targetLotus.region(), player.region(), lastPos(player.pos(), player.vel(), flow))
-            and player.vel().length() < baseAccessTiming;
+            isAccel = !Collision::IsHit(targetLotus.region(), player.region(), lastPos(player.pos(), player.vel()))
+            and player.vel().length() < baseAccelTiming;
             if (isAccel) {
                 if (player.accelCount() <= 1) {
                     isAccel = false;
@@ -180,7 +190,7 @@ namespace hpc {
             }
         }
 
-        Vec2 targetPos = getTargetPos(player, targetLotus.region(), player.targetLotusNo(), flow);
+        Vec2 targetPos = getTargetPos(player, targetLotus.region(), player.targetLotusNo());
         
         prevLotus = player.targetLotusNo();
         if (player.accelCount() > 0 && isAccel) {
